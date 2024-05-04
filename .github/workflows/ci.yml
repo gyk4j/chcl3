@@ -42,14 +42,8 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: chcl3
-<<<<<<< Updated upstream
-          path: .
-=======
           path: |
             .
             !.git
             !.github
           retention-days: 1
-          
-            
->>>>>>> Stashed changes
