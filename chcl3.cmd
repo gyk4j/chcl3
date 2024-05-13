@@ -103,12 +103,17 @@ echo.
 
 
 echo # Blocking telemetry by DNS resolution...
+if not exist C:\Windows\System32\drivers\etc\hosts.bkp (
+	RENAME C:\Windows\System32\drivers\etc\hosts hosts.bkp
+	COPY C:\Windows\System32\drivers\etc\hosts.bkp C:\Windows\System32\drivers\etc\hosts
+)
 for /f "delims=" %%A IN (data\dns.txt) DO (
-	FIND /I "%%A" C:\Windows\System32\drivers\etc\hosts > NUL
+	FIND /I "127.0.0.1	%%A" C:\Windows\System32\drivers\etc\hosts > NUL
 	IF ERRORLEVEL 1 (
-		ECHO - %%A
+		ECHO 127.0.0.1	%%A >> C:\Windows\System32\drivers\etc\hosts
+		ECHO + %%A
 	) ELSE ( 
-		REM ECHO ! %%A
+		ECHO - %%A
 	)
 )
 echo.
