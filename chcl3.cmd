@@ -43,8 +43,10 @@ for /f %%A IN (data\services.txt) DO (
 )
 echo.
 
-echo # Overwriting diagtrack log...
-echo "" > C:\ProgramData\Microsoft\Diagnosis\ETLLogs\AutoLogger\AutoLogger-Diagtrack-Listener.etl
+echo # Overwriting files...
+for /f %%A IN (data\files.txt) DO (
+	echo "" > %%A
+)
 echo.
 
 echo # Disabling Customer Experience Improvement Program (CEIP)...
@@ -79,7 +81,7 @@ echo.
 
 echo # Uninstalling telemetry Windows Updates
 for /f "delims=" %%A IN (data\updates.txt) DO (
-	REM wusa /uninstall /kb:%%A /quiet /norestart
+	WUSA /uninstall /kb:%%A /quiet /norestart
 	if ERRORLEVEL 0 (
 		ECHO - KB%%A
 	) else (
