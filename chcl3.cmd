@@ -29,7 +29,7 @@ cls
 CD %~dp0
 
 echo # Stopping services...
-for /f %%A IN (services.txt) DO (
+for /f %%A IN (data\services.txt) DO (
 	sc query %%A > NUL
 	
 	if ERRORLEVEL 1060 (
@@ -63,7 +63,7 @@ REG ADD "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate\Auto Updat
 echo.
 
 echo # Disabling scheduled tasks...
-for /f "delims=" %%A IN (schtasks.txt) DO (
+for /f "delims=" %%A IN (data\schtasks.txt) DO (
 	SCHTASKS /Query /TN "%%A" 2> NUL
 	
 	if ERRORLEVEL 1 (
@@ -78,7 +78,7 @@ for /f "delims=" %%A IN (schtasks.txt) DO (
 echo.
 
 echo # Uninstalling telemetry Windows Updates
-for /f "delims=" %%A IN (updates.txt) DO (
+for /f "delims=" %%A IN (data\updates.txt) DO (
 	REM wusa /uninstall /kb:%%A /quiet /norestart
 	if ERRORLEVEL 0 (
 		ECHO - KB%%A
@@ -90,7 +90,7 @@ echo.
 
 echo # Blocking telemetry by IP...
 SETLOCAL EnableDelayedExpansion
-for /f %%A IN (ip.txt) DO (
+for /f %%A IN (data\ip.txt) DO (
 	echo - %%A
 	if not "%%A" == "" set blockedips=!blockedips!,%%A
 )
@@ -101,7 +101,7 @@ echo.
 
 
 echo # Blocking telemetry by DNS resolution...
-for /f "delims=" %%A IN (dns.txt) DO (
+for /f "delims=" %%A IN (data\dns.txt) DO (
 	FIND /I "%%A" C:\Windows\System32\drivers\etc\hosts > NUL
 	IF ERRORLEVEL 1 (
 		ECHO - %%A
