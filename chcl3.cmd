@@ -3,7 +3,7 @@
 cls
 
 echo ###########################################################################
-type ..\LICENSE
+type LICENSE
 echo.
 echo       ^<Press CTRL-C to exit now or *any key* to accept the license.^>
 pause > nul
