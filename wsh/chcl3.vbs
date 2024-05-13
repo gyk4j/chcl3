@@ -1,14 +1,42 @@
+Option Explicit
+
+Const OPEN_READ = 1
+
 Dim fso
 Set fso = CreateObject("Scripting.FileSystemObject")
 
 Function ReadTextFile(Path)
-	Dim Buffer
-	Set fh = fso.OpenTextFile(Path, 1)
+	Dim fh, Buffer
+	Set fh = fso.OpenTextFile(Path, OPEN_READ)
 	Buffer = fh.ReadAll()
 	fh.Close
 	Set fh = Nothing
 	ReadTextFile = Buffer
 End Function
+
+Sub ReadLine(Path, Callback)
+	Dim fh, Buffer
+	Set fh= fso.OpenTextFile(Path, OPEN_READ)
+	Do While Not fh.AtEndOfStream
+		Buffer = fh.ReadLine
+		'Remove comment
+		Dim SemiColon
+		SemiColon = InStr(Buffer, ";")
+		If Not IsNull(SemiColon) And SemiColon > 0 Then
+			Buffer = Left(Buffer, SemiColon - 1)
+		End If
+		
+		'Split into tokens
+		Dim Tokens
+		Tokens = Split(Buffer)
+		
+		If Not IsNull(Tokens) And IsArray(Tokens) And UBound(Tokens) > 0 Then
+			Call Callback(Tokens)
+		End If
+	Loop
+	fh.Close
+	Set fh = Nothing
+End Sub
 
 Function DisplayLicense()
 	Dim LicenseText
@@ -41,6 +69,17 @@ Function DisplayWarning
 	DisplayWarning = MsgBox(WarningText, vbYesNo + vbExclamation + vbDefaultButton2, "Warning")
 End Function
 
+Sub StopService(Service)
+	WScript.Echo Service(LBound(Service))
+End Sub
+
+Sub StopServices
+	Dim SubRef
+	Set SubRef = GetRef("StopService")
+	Call ReadLine("services.txt", SubRef)
+	Set SubRef = Nothing
+End Sub
+
 Sub Main()
 	Dim Accepted
 	Accepted = DisplayLicense()
@@ -49,7 +88,7 @@ Sub Main()
 		Accepted = DisplayWarning()
 		
 		If Accepted = vbYes Then
-			WScript.Echo "Continue..."
+			Call StopServices
 		End If
 	End If
 End Sub

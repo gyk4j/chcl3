@@ -1,0 +1,32 @@
+; Which Windows Services can you safely disable in Windows 11/10?: https://www.thewindowsclub.com/which-windows-10-services-safe-to-disable
+
+dmwappushservice Device Management Wireless Application Protocol (WAP) Push message Routing Service
+;AVCTP service
+BDESVC BitLocker Drive Encryption Service
+bthserv Bluetooth Support Service
+Browser Computer Browser
+;Connected User Experiences and Telemetry
+DPS Diagnostic Policy Service
+WdiServiceHost Diagnostic Service Host
+WdiSystemHost Diagnostic System Host
+DiagTrack Diagnostic Tracking Service
+Trkwks Distributed Link Tracking Client
+;Downloaded Maps Manager
+;File History Service
+IEEtwCollectorService Internet Explorer ETW Collector Service
+iphlpsvc IP Helper
+;Infrared monitor service
+SharedAccess Internet Connection Sharing
+Netlogon Netlogon
+PcaSvc Program Compatibility Assistant Service
+;Spooler Print Spooler
+WPCSvc Parental Control
+RemoteRegistry Remote Registry
+seclogon Secondary Logon
+lmhosts TCP/IP NetBIOS Helper
+TabletInputService Touch Keyboard and Handwriting Panel Service
+WerSvc Windows Error Reporting Service
+stisvc Windows Image Acquisition
+;Windows Camera Frame Server
+;Windows Insider Service
+WSearch Windows Search
