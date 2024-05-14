@@ -5,9 +5,10 @@ Const OPEN_READ = 1
 Dim ExitCode
 Dim PrintBuffer
 
-Dim fso, wso
+Dim fso, wso, wmi
 Set fso = CreateObject("Scripting.FileSystemObject")
 Set wso = CreateObject("WScript.Shell")
+Set wmi = GetObject("winmgmts:{impersonationLevel=impersonate}!\\.\root\cimv2")
 
 Sub Print(Message)
 	If IsNull(PrintBuffer) Then
@@ -18,7 +19,7 @@ Sub Print(Message)
 End Sub
 
 Sub Flush(Title)
-	Call wso.Popup(PrintBuffer, 0, Title)
+	WScript.Echo PrintBuffer
 	PrintBuffer = ""
 End Sub
 
@@ -87,7 +88,28 @@ Function DisplayWarning
 End Function
 
 Sub StopService(Service)
-	Call Print(Service(LBound(Service)))
+	Dim Status, ServiceName, Matches, Match, ErrReturnCode 
+	ServiceName = Service(LBound(Service))
+	
+	Set Matches = wmi.ExecQuery("Select * from Win32_Service Where Name ='" & ServiceName & "'")
+	
+	Status = "?"
+	For Each Match in Matches
+		If Match.State = "Running" Then
+			Match.StopService()
+			Wscript.Sleep 5000
+		End If
+		
+		ErrReturnCode = Match.ChangeStartMode("Disabled")
+		
+		If ErrReturnCode = 0 Then
+			Status = "-"
+		Else
+			Status = "!" ' Failed to disable service for future runs
+		End If
+	Next
+		
+	Call Print(Status & " " & ServiceName & " (" & ErrReturnCode & ")")
 End Sub
 
 Sub StopServices
@@ -116,6 +138,8 @@ End Function
 Sub CleanUp
 	Set fso = Nothing
 	Set wso = Nothing
+	'Never clean up WMI as it will stop services.msc from running.
+	'Only clean up objects that are created.
 End Sub
 
 ExitCode = Main()
