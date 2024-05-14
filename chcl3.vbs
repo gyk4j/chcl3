@@ -40,7 +40,7 @@ End Sub
 
 Function DisplayLicense()
 	Dim LicenseText
-	LicenseText = ReadTextFile("..\LICENSE")
+	LicenseText = ReadTextFile("LICENSE")
 	
 	'Reflow the text by removing unwanted new line characters. Keep the empty
 	'line separating paragraphs.
@@ -76,7 +76,7 @@ End Sub
 Sub StopServices
 	Dim SubRef
 	Set SubRef = GetRef("StopService")
-	Call ReadLine("services.txt", SubRef)
+	Call ReadLine("data\services.txt", SubRef)
 	Set SubRef = Nothing
 End Sub
 
