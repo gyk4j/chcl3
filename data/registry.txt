@@ -1,0 +1,6 @@
+HKLM\SOFTWARE\Microsoft\SQMClient\Windows,CEIPEnable,REG_DWORD,0
+HKLM\SOFTWARE\Microsoft\Windows\Windows Error Reporting,Disabled,REG_DWORD,1
+HKLM\SOFTWARE\Microsoft\Windows\Windows Error Reporting,DontShowUI,REG_DWORD,1
+HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate\Auto Update,AUOptions,REG_DWORD,1
+HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate\Auto Update,IncludeRecommendedUpdates,REG_DWORD,0
+HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate\Auto Update,ElevateNonAdmins,REG_DWORD,0

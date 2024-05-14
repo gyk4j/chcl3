@@ -49,19 +49,12 @@ for /f %%A IN (data\files.txt) DO (
 )
 echo.
 
-echo # Disabling Customer Experience Improvement Program (CEIP)...
-REG ADD "HKLM\SOFTWARE\Microsoft\SQMClient\Windows" /v CEIPEnable /t REG_DWORD /d 0 /f
-echo.
-
-echo # Disabling Windows Error Reporting...
-REG ADD "HKLM\SOFTWARE\Microsoft\Windows\Windows Error Reporting" /v Disabled /t REG_DWORD /d 1 /f
-REG ADD "HKLM\SOFTWARE\Microsoft\Windows\Windows Error Reporting" /v DontShowUI /t REG_DWORD /d 1 /f
-echo.
-
-echo # Disabling Windows Updates...
-REG ADD "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate\Auto Update" /v AUOptions /t REG_DWORD /d 1 /f
-REG ADD "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate\Auto Update" /v IncludeRecommendedUpdates /t REG_DWORD /d 0 /f
-REG ADD "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate\Auto Update" /v ElevateNonAdmins /t REG_DWORD /d 0 /f
+echo # Updating registry key values...
+for /f "delims=, tokens=1,2,3,4" %%A IN (data\registry.txt) DO (
+	ECHO [%%A]
+	ECHO %%B = %%D [%%C]
+	REG ADD "%%A" /v %%B /t %%C /d %%D /f
+)
 echo.
 
 echo # Disabling scheduled tasks...
