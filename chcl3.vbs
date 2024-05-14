@@ -1,5 +1,6 @@
 Option Explicit
 
+Const DEBUG_MODE = False
 Const OPEN_READ = 1
 
 Dim ExitCode
@@ -32,7 +33,7 @@ Function ReadTextFile(Path)
 	ReadTextFile = Buffer
 End Function
 
-Sub ReadLine(Path, Callback)
+Sub ReadLine(Path, Delimiter, Length, Callback)
 	Dim fh, Buffer
 	Set fh= fso.OpenTextFile(Path, OPEN_READ)
 	Do While Not fh.AtEndOfStream
@@ -46,20 +47,26 @@ Sub ReadLine(Path, Callback)
 		
 		'Split into tokens
 		Dim Tokens
-		Tokens = Split(Buffer)
+		Tokens = Split(Buffer, Delimiter)
 		
-		If Not IsNull(Tokens) And IsArray(Tokens) And UBound(Tokens) >= 0 Then
+		If Not IsNull(Tokens) _
+			And IsArray(Tokens) _
+			And LBound(Tokens) = 0 _
+			And UBound(Tokens) = Length-1 _
+		Then
 			Call Callback(Tokens)
+		Else
+			Print "Skipped: " & Trim(Buffer)
 		End If
 	Loop
 	fh.Close
 	Set fh = Nothing
 End Sub
 
-Sub ForEach(Path, Lambda)
+Sub ForEach(Path, Delimiter, Length, Lambda)
 	Dim SubRef
 	Set SubRef = GetRef(Lambda)
-	Call ReadLine(Path, SubRef)
+	Call ReadLine(Path, Delimiter, Length, SubRef)
 	Set SubRef = Nothing
 	Call Flush
 End Sub
@@ -73,7 +80,12 @@ Function DisplayLicense()
 	LicenseText = Replace(Replace(Replace(LicenseText, vbCrLf & vbCrLf, "~~~"), vbCrLf, " "), "~~~", vbCrLf & vbCrLf)
 	
 	LicenseText = LicenseText & vbCrLf & vbCrLf & "Click Cancel to exit now or OK to accept the license." & vbCrLf
-	DisplayLicense = wso.Popup(LicenseText, 0, "License Agreement", vbOKCancel + vbInformation + vbDefaultButton2)
+	
+	If DEBUG_MODE Then
+		DisplayLicense = vbOK
+	Else
+		DisplayLicense = wso.Popup(LicenseText, 0, "License Agreement", vbOKCancel + vbInformation + vbDefaultButton2)
+	End If
 End Function
 
 Function DisplayWarning
@@ -92,7 +104,11 @@ Function DisplayWarning
 		vbCrLf & _
 		"Click Cancel to exit now or OK to continue." & vbCrLf
 	
-	DisplayWarning = wso.Popup(WarningText, 0, "Warning", vbOKCancel + vbExclamation + vbDefaultButton2)
+	If DEBUG_MODE Then
+		DisplayWarning = vbOK
+	Else
+		DisplayWarning = wso.Popup(WarningText, 0, "Warning", vbOKCancel + vbExclamation + vbDefaultButton2)
+	End If
 End Function
 
 Sub StopService(Service)
@@ -121,7 +137,7 @@ Sub StopService(Service)
 End Sub
 
 Sub StopServices
-	Call ForEach("data\services.txt", "StopService")
+	Call ForEach("data\services.txt", " ", 1, "StopService")
 End Sub
 
 Sub OverWriteFile(File)
@@ -145,19 +161,24 @@ Sub OverWriteFile(File)
 End Sub
 
 Sub OverWriteFiles
-	Call ForEach("data\files.txt", "OverWriteFile")
+	Call ForEach("data\files.txt", " ", 1, "OverWriteFile")
 End Sub
 
-Function Main()
-	Dim Accepted
-	Accepted = vbOK 'DisplayLicense()
-		
-	If Accepted = vbOK Then
-		Accepted = vbOK 'DisplayWarning()
-		
-		If Accepted = vbOK Then
+Sub UpdateRegistryKeyValue(KeyValue)
+	wso.RegWrite KeyValue(0) & "\" & KeyValue(1), KeyValue(3), KeyValue(2)
+	Call Print(KeyValue(0) & "\" & KeyValue(1) & "=" & KeyValue(3))
+End Sub
+
+Sub UpdateRegistryKeyValues
+	Call ForEach("data\registry.txt", ",", 4, "UpdateRegistryKeyValue")
+End Sub
+
+Function Main()	
+	If DisplayLicense() = vbOK Then		
+		If DisplayWarning() = vbOK Then
 			Call StopServices
 			Call OverWriteFiles
+			Call UpdateRegistryKeyValues
 		End If
 	End If
 	
