@@ -3,10 +3,24 @@ Option Explicit
 Const OPEN_READ = 1
 
 Dim ExitCode
+Dim PrintBuffer
 
 Dim fso, wso
 Set fso = CreateObject("Scripting.FileSystemObject")
 Set wso = CreateObject("WScript.Shell")
+
+Sub Print(Message)
+	If IsNull(PrintBuffer) Then
+		PrintBuffer = ""
+	End If
+	
+	PrintBuffer = PrintBuffer & Message & vbCrLf
+End Sub
+
+Sub Flush(Title)
+	Call wso.Popup(PrintBuffer, 0, Title)
+	PrintBuffer = ""
+End Sub
 
 Function ReadTextFile(Path)
 	Dim fh, Buffer
@@ -73,7 +87,7 @@ Function DisplayWarning
 End Function
 
 Sub StopService(Service)
-	'WScript.Echo Service(LBound(Service))
+	Call Print(Service(LBound(Service)))
 End Sub
 
 Sub StopServices
@@ -81,6 +95,7 @@ Sub StopServices
 	Set SubRef = GetRef("StopService")
 	Call ReadLine("data\services.txt", SubRef)
 	Set SubRef = Nothing
+	Call Flush("StopServices")
 End Sub
 
 Function Main()
