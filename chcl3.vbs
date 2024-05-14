@@ -2,8 +2,11 @@ Option Explicit
 
 Const OPEN_READ = 1
 
-Dim fso
+Dim ExitCode
+
+Dim fso, wso
 Set fso = CreateObject("Scripting.FileSystemObject")
+Set wso = CreateObject("WScript.Shell")
 
 Function ReadTextFile(Path)
 	Dim fh, Buffer
@@ -80,18 +83,22 @@ Sub StopServices
 	Set SubRef = Nothing
 End Sub
 
-Sub Main()
+Function Main()
 	Dim Accepted
-	Accepted = DisplayLicense()
+	Accepted = vbYes 'DisplayLicense()
 		
 	If Accepted = vbYes Then
-		Accepted = DisplayWarning()
+		Accepted = vbYes 'DisplayWarning()
 		
 		If Accepted = vbYes Then
 			Call StopServices
 		End If
 	End If
-End Sub
+	
+	Main = 0 ' Report no error
+End Function
 
-Call Main
+ExitCode = Main()
+WScript.Quit(ExitCode)
+
 
