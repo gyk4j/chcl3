@@ -18,7 +18,7 @@ Sub Print(Message)
 	PrintBuffer = PrintBuffer & Message & vbCrLf
 End Sub
 
-Sub Flush(Title)
+Sub Flush
 	WScript.Echo PrintBuffer
 	PrintBuffer = ""
 End Sub
@@ -48,12 +48,20 @@ Sub ReadLine(Path, Callback)
 		Dim Tokens
 		Tokens = Split(Buffer)
 		
-		If Not IsNull(Tokens) And IsArray(Tokens) And UBound(Tokens) > 0 Then
+		If Not IsNull(Tokens) And IsArray(Tokens) And UBound(Tokens) >= 0 Then
 			Call Callback(Tokens)
 		End If
 	Loop
 	fh.Close
 	Set fh = Nothing
+End Sub
+
+Sub ForEach(Path, Lambda)
+	Dim SubRef
+	Set SubRef = GetRef(Lambda)
+	Call ReadLine(Path, SubRef)
+	Set SubRef = Nothing
+	Call Flush
 End Sub
 
 Function DisplayLicense()
@@ -113,22 +121,43 @@ Sub StopService(Service)
 End Sub
 
 Sub StopServices
-	Dim SubRef
-	Set SubRef = GetRef("StopService")
-	Call ReadLine("data\services.txt", SubRef)
-	Set SubRef = Nothing
-	Call Flush("StopServices")
+	Call ForEach("data\services.txt", "StopService")
+End Sub
+
+Sub OverWriteFile(File)
+	Dim Status, FilePath
+	FilePath = File(0)
+	
+	On Error Resume Next
+	
+	Set f = fso.CreateTextFile(FilePath, True)
+	
+	If Err.Number <> 0 Then
+		Status = "! (" & Err.Number & ": " & Err.Description & ")"
+		Err.Clear
+	Else
+		f.WriteLine("")
+		f.Close
+		Status = "-"
+	End If	
+	
+	Call Print(Status & " " & FilePath)
+End Sub
+
+Sub OverWriteFiles
+	Call ForEach("data\files.txt", "OverWriteFile")
 End Sub
 
 Function Main()
 	Dim Accepted
-	Accepted = DisplayLicense()
+	Accepted = vbOK 'DisplayLicense()
 		
 	If Accepted = vbOK Then
-		Accepted = DisplayWarning()
+		Accepted = vbOK 'DisplayWarning()
 		
 		If Accepted = vbOK Then
 			Call StopServices
+			Call OverWriteFiles
 		End If
 	End If
 	
