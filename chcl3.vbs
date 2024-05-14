@@ -49,8 +49,8 @@ Function DisplayLicense()
 	'line separating paragraphs.
 	LicenseText = Replace(Replace(Replace(LicenseText, vbCrLf & vbCrLf, "~~~"), vbCrLf, " "), "~~~", vbCrLf & vbCrLf)
 	
-	LicenseText = LicenseText & vbCrLf & "Click No to exit now or Yes to accept the license." & vbCrLf
-	DisplayLicense = MsgBox(LicenseText, vbYesNo + vbInformation + vbDefaultButton2, "License Agreement")
+	LicenseText = LicenseText & vbCrLf & vbCrLf & "Click Cancel to exit now or OK to accept the license." & vbCrLf
+	DisplayLicense = wso.Popup(LicenseText, 0, "License Agreement", vbOKCancel + vbInformation + vbDefaultButton2)
 End Function
 
 Function DisplayWarning
@@ -67,13 +67,13 @@ Function DisplayWarning
 		"By proceeding with the use of this script, you accept the license, " & _
 		"terms and conditions and all associated risks." & vbCrLf & _
 		vbCrLf & _
-		"Click No to exit now or Yes to continue." & vbCrLf
+		"Click Cancel to exit now or OK to continue." & vbCrLf
 	
-	DisplayWarning = MsgBox(WarningText, vbYesNo + vbExclamation + vbDefaultButton2, "Warning")
+	DisplayWarning = wso.Popup(WarningText, 0, "Warning", vbOKCancel + vbExclamation + vbDefaultButton2)
 End Function
 
 Sub StopService(Service)
-	WScript.Echo Service(LBound(Service))
+	'WScript.Echo Service(LBound(Service))
 End Sub
 
 Sub StopServices
@@ -85,12 +85,12 @@ End Sub
 
 Function Main()
 	Dim Accepted
-	Accepted = vbYes 'DisplayLicense()
+	Accepted = DisplayLicense()
 		
-	If Accepted = vbYes Then
-		Accepted = vbYes 'DisplayWarning()
+	If Accepted = vbOK Then
+		Accepted = DisplayWarning()
 		
-		If Accepted = vbYes Then
+		If Accepted = vbOK Then
 			Call StopServices
 		End If
 	End If
@@ -98,7 +98,13 @@ Function Main()
 	Main = 0 ' Report no error
 End Function
 
+Sub CleanUp
+	Set fso = Nothing
+	Set wso = Nothing
+End Sub
+
 ExitCode = Main()
+Call CleanUp
 WScript.Quit(ExitCode)
 
 
