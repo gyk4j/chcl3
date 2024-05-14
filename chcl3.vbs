@@ -3,6 +3,13 @@ Option Explicit
 Const DEBUG_MODE = False
 Const OPEN_READ = 1
 
+' Schedule Service
+Const TASK_STATE_UNKNOWN 	= 0
+Const TASK_STATE_DISABLED 	= 1
+Const TASK_STATE_QUEUED 	= 2
+Const TASK_STATE_READY 		= 3
+Const TASK_STATE_RUNNING 	= 4
+
 Dim ExitCode
 Dim PrintBuffer
 
@@ -42,21 +49,23 @@ Sub ReadLine(Path, Delimiter, Length, Callback)
 		Dim SemiColon
 		SemiColon = InStr(Buffer, ";")
 		If Not IsNull(SemiColon) And SemiColon > 0 Then
-			Buffer = Left(Buffer, SemiColon - 1)
+			Buffer = Trim(Left(Buffer, SemiColon - 1))
 		End If
 		
-		'Split into tokens
-		Dim Tokens
-		Tokens = Split(Buffer, Delimiter)
-		
-		If Not IsNull(Tokens) _
-			And IsArray(Tokens) _
-			And LBound(Tokens) = 0 _
-			And UBound(Tokens) = Length-1 _
-		Then
-			Call Callback(Tokens)
-		Else
-			Print "Skipped: " & Trim(Buffer)
+		If Len(Buffer) > 0 Then 		
+			'Split into tokens
+			Dim Tokens
+			Tokens = Split(Buffer, Delimiter)
+			
+			If Not IsNull(Tokens) _
+				And IsArray(Tokens) _
+				And LBound(Tokens) = 0 _
+				And UBound(Tokens) = Length-1 _
+			Then
+				Call Callback(Tokens)
+			Else
+				Print "Skipped: " & Trim(Buffer)
+			End If
 		End If
 	Loop
 	fh.Close
@@ -173,16 +182,64 @@ Sub UpdateRegistryKeyValues
 	Call ForEach("data\registry.txt", ",", 4, "UpdateRegistryKeyValue")
 End Sub
 
-Function Main()	
-	If DisplayLicense() = vbOK Then		
-		If DisplayWarning() = vbOK Then
-			Call StopServices
-			Call OverWriteFiles
-			Call UpdateRegistryKeyValues
+Sub DisableScheduledTask(Task)
+	Dim Status, TaskName
+	TaskName = Task(0)
+
+	' Create the TaskService object and connect
+	Dim ScheduleService
+	Set ScheduleService = CreateObject("Schedule.Service")
+	Call ScheduleService.Connect()
+
+	' Get the task folder that contains the tasks. 
+	Dim RootFolder
+	Set RootFolder = ScheduleService.GetFolder("\")
+	
+	Dim RegisteredTask
+	'WScript.Echo "Getting " & TaskName
+	On Error Resume Next
+	Set RegisteredTask = RootFolder.GetTask(TaskName)
+	
+	If Err.Number <> 0 Then
+		'WScript.Echo Err.Description & ": " & TaskName
+		Err.Clear
+		Status = "!"
+	Else
+		'WScript.Echo "Found " & RegisteredTask.Name & " (" & RegisteredTask.State & ")"
+		
+		' Stop the task if it is running
+		If RegisteredTask.State = TASK_STATE_RUNNING Then
+			RegisteredTask.Stop
 		End If
+		
+		' Disable the scheduled task
+		RegisteredTask.Enabled = False
+		Status = "-"
+	End If
+
+	Call Print(Status & " " & TaskName)
+End Sub
+
+Sub DisableScheduledTasks
+	Call ForEach("data\schtasks.txt", ";", 1, "DisableScheduledTask")
+End Sub
+
+Function Main()	
+	If DisplayLicense() <> vbOK Then
+		Main = 1
+		Exit Function
 	End If
 	
-	Main = 0 ' Report no error
+	If DisplayWarning() <> vbOK Then
+		Main = 2
+		Exit Function
+	End If
+	
+	Call StopServices
+	Call OverWriteFiles
+	Call UpdateRegistryKeyValues
+	Call DisableScheduledTasks
+	Main = 0 ' Report success/no error
 End Function
 
 Sub CleanUp
