@@ -2,6 +2,8 @@ Option Explicit
 
 Const DEBUG_MODE = False
 Const OPEN_READ = 1
+Const OPEN_WRITE = 2
+Const OPEN_APPEND = 8
 
 ' Schedule Service
 Const TASK_STATE_UNKNOWN 	= 0
@@ -393,6 +395,44 @@ Sub BlockIPs
 	RulesObject.Add NewRule
 End Sub
 
+Dim HostFileHandle
+
+Sub BlockHost(Host)
+	Dim HostName
+	
+	HostName = Host(0)
+	
+	If IsEmpty(HostFileHandle) Or IsNull(HostFileHandle) Then
+		WScript.Echo "Error: hosts file is not open"
+		Exit Sub
+	End If
+	
+	HostFileHandle.WriteLine("127.0.0.1" & vbTab & HostName)
+	Print(HostName)
+End Sub
+
+Sub BlockHosts
+	Const HOST_PATH 		= "C:\Windows\System32\drivers\etc\hosts"
+	Const HOST_BACKUP_PATH 	= "C:\Windows\System32\drivers\etc\hosts.bkp"
+	'Const HOST_PATH = "hosts"
+	'Const HOST_BACKUP_PATH = "hosts.bkp"
+	
+	If Not fso.FileExists(HOST_PATH) Then
+		WScript.Echo "Error: " & HOST_PATH & " (Missing)"
+		Exit Sub
+	End If
+	
+	If Not fso.FileExists(HOST_BACKUP_PATH) Then
+		fso.MoveFile HOST_PATH, HOST_BACKUP_PATH
+		fso.CopyFile HOST_BACKUP_PATH, HOST_PATH, False
+	End If
+	
+	Set HostFileHandle = fso.OpenTextFile(HOST_PATH, OPEN_APPEND)
+	Call ForEach("data\dns.txt", " ", 1, "BlockHost")
+	HostFileHandle.Close
+	Set HostFileHandle = Nothing
+End Sub
+
 Function Main()	
 	If DisplayLicense() <> vbOK Then
 		Main = 1
@@ -410,6 +450,7 @@ Function Main()
 	Call DisableScheduledTasks
 	Call UninstallWindowsUpdates
 	Call BlockIPs
+	Call BlockHosts
 	Main = 0 ' Report success/no error
 End Function
 
