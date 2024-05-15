@@ -10,6 +10,14 @@ Const TASK_STATE_QUEUED 	= 2
 Const TASK_STATE_READY 		= 3
 Const TASK_STATE_RUNNING 	= 4
 
+' Installer
+Const ORC_NOT_STARTED			= 0
+Const ORC_IN_PROGRESS			= 1
+Const ORC_SUCCEEDED				= 2
+Const ORC_SUCCEEDED_WITH_ERRORS	= 3
+Const ORC_FAILED				= 4
+Const ORC_ABORTED				= 5
+
 Dim ExitCode
 Dim PrintBuffer
 
@@ -224,6 +232,75 @@ Sub DisableScheduledTasks
 	Call ForEach("data\schtasks.txt", ";", 1, "DisableScheduledTask")
 End Sub
 
+Dim SearchResult, UpdatesToUninstall
+
+Sub UninstallWindowsUpdate(Update)
+	Dim KB, Result, Installed
+	KB = Update(0)
+
+	'Exit if searchResult and updatesToUninstall are uninitialized
+	If IsEmpty(SearchResult) Or IsNull(SearchResult) Then
+		Exit Sub
+	ElseIf IsEmpty(UpdatesToUninstall) Or IsNull(UpdatesToUninstall) Then
+		Exit Sub
+	End If
+
+	Dim i, Item, Found
+	Found = False
+	For i = 0 To SearchResult.Updates.Count-1
+		Set Item = SearchResult.Updates.Item(i)
+		
+		'Add all matching updates from search result to be uninstalled
+		If InStrRev(Item.Title, "(KB" & KB & ")") > 0 Then
+			UpdatesToUninstall.Add(Item)
+			Found = True
+		End If
+	Next
+	
+	If Found Then
+		Print("- KB" & KB)
+	Else
+		Print("? KB" & KB)
+	End If
+End Sub
+
+Sub UninstallWindowsUpdates
+	Dim Session, Searcher, Installer, UninstallResult
+	Set Session = CreateObject("Microsoft.Update.Session")
+	Session.ClientApplicationID = "MSDN Sample Script"
+
+	Set Searcher = Session.CreateUpdateSearcher()
+	Set SearchResult = Searcher.Search("IsInstalled=1")
+	Set UpdatesToUninstall = CreateObject("Microsoft.Update.UpdateColl")
+	'Match installed updates against list of known bad updates to be uninstalled
+	Call ForEach("data\updates.txt", " ", 1, "UninstallWindowsUpdate")
+	
+	If UpdatesToUninstall.Count > 0 Then
+		Set Installer = Session.CreateUpdateInstaller()
+		Installer.Updates = UpdatesToUninstall
+		Set UninstallResult = Installer.Uninstall
+		
+		Select Case UninstallResult.ResultCode
+			Case ORC_NOT_STARTED
+				WScript.Echo "Not started"
+			Case ORC_IN_PROGRESS
+				WScript.Echo "In progress"
+			Case ORC_SUCCEEDED
+				WScript.Echo "Succeeded"
+			Case ORC_SUCCEEDED_WITH_ERRORS
+				WScript.Echo "Succeeded with errors"
+			Case ORC_FAILED
+				WScript.Echo "Failed"
+			Case ORC_ABORTED
+				WScript.Echo "Aborted"
+			Case Else
+				WScript.Echo "Unknown operation result code: " & UninstallResult.ResultCode
+		End Select
+	Else
+		WScript.Echo "No update is required to be uninstalled"
+	End If
+End Sub
+
 Function Main()	
 	If DisplayLicense() <> vbOK Then
 		Main = 1
@@ -239,6 +316,7 @@ Function Main()
 	Call OverWriteFiles
 	Call UpdateRegistryKeyValues
 	Call DisableScheduledTasks
+	Call UninstallWindowsUpdates
 	Main = 0 ' Report success/no error
 End Function
 
