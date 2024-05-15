@@ -68,7 +68,7 @@ Sub ReadLine(Path, Delimiter, Length, Callback)
 			If Not IsNull(Tokens) _
 				And IsArray(Tokens) _
 				And LBound(Tokens) = 0 _
-				And UBound(Tokens) = Length-1 _
+				And UBound(Tokens) >= Length - 1 _
 			Then
 				Call Callback(Tokens)
 			Else
@@ -301,6 +301,98 @@ Sub UninstallWindowsUpdates
 	End If
 End Sub
 
+Dim ips()
+
+Sub BlockIP(ip)
+	Dim IPAddr
+	IPAddr = ip(0)
+	
+	Dim Last
+	On Error Resume Next
+	Last = UBound(ips)
+	
+	If Err.Number <> 0 Then
+		Last = 0
+		Redim ips(Last)
+		Err.Clear
+	Else
+		Last = Last + 1
+		Redim Preserve ips(Last)
+	End If
+	
+	ips(Last) = IPAddr
+	Print(UBound(ips) & ": " & ips(Last))
+End Sub
+
+Sub BlockIPs
+	Call ForEach("data\ip.txt", " ", 1, "BlockIP")
+	
+	On Error Resume Next
+	If UBound(ips) < 0 Then
+		WScript.Echo "UBound < 0"
+		Exit Sub
+	End If
+	
+	If Err.Number <> 0 Then
+		WScript.Echo "Err: " & Err.Description
+		Err.Clear
+		Exit Sub
+	End If
+	
+	Dim CurrentProfiles
+	' Profiles
+	Const NET_FW_PROFILE2_DOMAIN = &H1
+	Const NET_FW_PROFILE2_PRIVATE = &H2
+	Const NET_FW_PROFILE2_PUBLIC = &H4
+	Const NET_FW_PROFILE2_ALL = &H7fffffff
+
+	' Protocol
+	Const NET_FW_IP_PROTOCOL_TCP = 6
+	Const NET_FW_IP_PROTOCOL_UDP = 17
+	Const NET_FW_IP_PROTOCOL_ANY = 256
+
+	'Direction
+	Const NET_FW_RULE_DIR_IN = 1
+	Const NET_FW_RULE_DIR_OUT = 2
+
+	'Action
+	Const NET_FW_ACTION_BLOCK = 0
+	Const NET_FW_ACTION_ALLOW = 1
+
+	' Create the FwPolicy2 object.
+	Dim fwPolicy2
+	Set fwPolicy2 = CreateObject("HNetCfg.FwPolicy2")
+
+	' Get the Rules object
+	Dim RulesObject
+	Set RulesObject = fwPolicy2.Rules
+
+	CurrentProfiles = fwPolicy2.CurrentProfileTypes
+	
+	'Remove any existing rule from a previous run
+	RulesObject.Remove "Block Telemetry"
+
+	'Create a Rule Object.
+	Dim NewRule
+	Set NewRule = CreateObject("HNetCfg.FWRule")
+		
+	NewRule.Name = "Block Telemetry"
+	NewRule.Description = "Block Telemetry"
+	'NewRule.Applicationname = "%systemDrive%\Program Files\MyApplication.exe"
+	NewRule.Protocol = NET_FW_IP_PROTOCOL_ANY
+	NewRule.RemoteAddresses = Join(ips, ",")
+	'NewRule.LocalPorts = 8080
+	'NewRule.RemotePorts = 443,80
+	NewRule.Direction = NET_FW_RULE_DIR_OUT
+	NewRule.Enabled = True
+	'NewRule.Grouping = "@firewallapi.dll,-23255"
+	NewRule.Profiles = NET_FW_PROFILE2_ALL 'CurrentProfiles
+	NewRule.Action = NET_FW_ACTION_BLOCK
+			
+	'Add a new rule
+	RulesObject.Add NewRule
+End Sub
+
 Function Main()	
 	If DisplayLicense() <> vbOK Then
 		Main = 1
@@ -317,6 +409,7 @@ Function Main()
 	Call UpdateRegistryKeyValues
 	Call DisableScheduledTasks
 	Call UninstallWindowsUpdates
+	Call BlockIPs
 	Main = 0 ' Report success/no error
 End Function
 
