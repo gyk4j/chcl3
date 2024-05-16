@@ -28,6 +28,17 @@ Set fso = CreateObject("Scripting.FileSystemObject")
 Set wso = CreateObject("WScript.Shell")
 Set wmi = GetObject("winmgmts:{impersonationLevel=impersonate}!\\.\root\cimv2")
 
+Sub ChangeScriptDirectory
+	Dim ScriptDir
+	ScriptDir = Left(WScript.ScriptFullName, InStrRev(WScript.ScriptFullName, "\") - 1)
+	
+	If IsEmpty(wso) Or IsNull(wso) Then
+		Exit Sub
+	ElseIf IsObject(wso) Then
+		wso.CurrentDirectory  = ScriptDir
+	End If
+End Sub
+
 Sub Print(Message)
 	If IsNull(PrintBuffer) Then
 		PrintBuffer = ""
@@ -414,8 +425,8 @@ End Sub
 Sub BlockHosts
 	Const HOST_PATH 		= "C:\Windows\System32\drivers\etc\hosts"
 	Const HOST_BACKUP_PATH 	= "C:\Windows\System32\drivers\etc\hosts.bkp"
-	'Const HOST_PATH = "hosts"
-	'Const HOST_BACKUP_PATH = "hosts.bkp"
+	'Const HOST_PATH 		= ".\Windows\System32\drivers\etc\hosts"
+	'Const HOST_BACKUP_PATH = ".\Windows\System32\drivers\etc\hosts.bkp"
 	
 	If Not fso.FileExists(HOST_PATH) Then
 		WScript.Echo "Error: " & HOST_PATH & " (Missing)"
@@ -434,6 +445,8 @@ Sub BlockHosts
 End Sub
 
 Function Main()	
+	Call ChangeScriptDirectory
+
 	If DisplayLicense() <> vbOK Then
 		Main = 1
 		Exit Function
