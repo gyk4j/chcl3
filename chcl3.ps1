@@ -1,6 +1,7 @@
 ﻿Add-Type -AssemblyName PresentationCore,PresentationFramework
 
 [string]$CRLF = "`r`n"
+[string]$OK = "OK"
 [bool]$DEBUG = $false
 
 Function Change-ScriptDirectory {
@@ -18,7 +19,12 @@ Function Display-License {
     $License = $License.Replace($CRLF + $CRLF, "~~~").Replace($CRLF, "").Replace("~~~", $CRLF + $CRLF)
     $License = $License + $CRLF + $CRLF + "Click Cancel to exit now or OK to accept the license." + $CRLF
 
-    return [System.Windows.MessageBox]::Show($License, "License Agreement", "OKCancel", "Information")
+    if ($DEBUG) {
+        return $OK
+    }
+    else {
+        return [System.Windows.MessageBox]::Show($License, "License Agreement", "OKCancel", "Information")
+    }
 }
 
 Function Display-Warning {
@@ -40,19 +46,24 @@ Click Cancel to exit now or OK to continue.
 
     $Warning = $Warning.Replace($CRLF + $CRLF, "~~~").Replace($CRLF, "").Replace("~~~", $CRLF + $CRLF)
 
-    return [System.Windows.MessageBox]::Show($Warning, "Warning", "OKCancel", "Exclamation")
+     if ($DEBUG) {
+        return $OK
+    }
+    else {
+        return [System.Windows.MessageBox]::Show($Warning, "Warning", "OKCancel", "Exclamation")
+    }
 }
 
 Function Main {
     Change-ScriptDirectory
 
     $Accepted = Display-License    
-    if ($Accepted -ne "OK") {
+    if ($Accepted -ne $OK) {
         return 1
     }
 
     $Accepted = Display-Warning    
-    if ($Accepted -ne "OK") {
+    if ($Accepted -ne $OK) {
         return 2
     }
     
