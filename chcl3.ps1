@@ -150,6 +150,20 @@ Function Stop-Services {
     For-Each -Path "data\services.txt" -Delimiter " " -Length 1 -Lambda $Handler
 }
 
+Function OverWrite-Files {
+    [ScriptBlock]$Handler = {
+        Param( [string[]]$Tokens )
+
+        [string]$Status = "-"
+        [string]$FilePath = $Tokens[0]
+
+        Clear-Content $FilePath
+        Print -Message "$Status $FilePath"
+    }
+
+    For-Each -Path "data\files.txt" -Delimiter " " -Length 1 -Lambda $Handler
+}
+
 Function Main {
     Change-ScriptDirectory
 
@@ -164,7 +178,8 @@ Function Main {
     }
 
     Stop-Services
-    
+    OverWrite-Files
+
     return 0
 }
 
