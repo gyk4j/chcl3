@@ -425,20 +425,29 @@ End Sub
 Sub BlockHosts
 	Const HOST_PATH 		= "C:\Windows\System32\drivers\etc\hosts"
 	Const HOST_BACKUP_PATH 	= "C:\Windows\System32\drivers\etc\hosts.bkp"
-	'Const HOST_PATH 		= ".\Windows\System32\drivers\etc\hosts"
-	'Const HOST_BACKUP_PATH = ".\Windows\System32\drivers\etc\hosts.bkp"
+	Const DEBUG_HOST_PATH 		= ".\Windows\System32\drivers\etc\hosts"
+	Const DEBUG_HOST_BACKUP_PATH = ".\Windows\System32\drivers\etc\hosts.bkp"
 	
-	If Not fso.FileExists(HOST_PATH) Then
-		WScript.Echo "Error: " & HOST_PATH & " (Missing)"
+	Dim HostsPath, HostsBackupPath
+	If DEBUG_MODE Then
+		HostsPath = DEBUG_HOST_PATH
+		HostsBackupPath = DEBUG_HOST_BACKUP_PATH
+	Else
+		HostsPath = HOST_PATH
+		HostsBackupPath = HOST_BACKUP_PATH
+	End If
+	
+	If Not fso.FileExists(HostsPath) Then
+		WScript.Echo "Error: " & HostsPath & " (Missing)"
 		Exit Sub
 	End If
 	
-	If Not fso.FileExists(HOST_BACKUP_PATH) Then
-		fso.MoveFile HOST_PATH, HOST_BACKUP_PATH
-		fso.CopyFile HOST_BACKUP_PATH, HOST_PATH, False
+	If Not fso.FileExists(HostsBackupPath) Then
+		fso.MoveFile HostsPath, HostsBackupPath
+		fso.CopyFile HostsBackupPath, HostsPath, False
 	End If
 	
-	Set HostFileHandle = fso.OpenTextFile(HOST_PATH, OPEN_APPEND)
+	Set HostFileHandle = fso.OpenTextFile(HostsPath, OPEN_APPEND)
 	Call ForEach("data\dns.txt", " ", 1, "BlockHost")
 	HostFileHandle.Close
 	Set HostFileHandle = Nothing
