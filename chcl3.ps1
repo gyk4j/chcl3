@@ -6,8 +6,25 @@ Add-Type -AssemblyName PresentationCore,PresentationFramework
 [string]$OK = "OK"
 [bool]$DEBUG = $true
 
+[string]$global:PrintBuffer
+
 Function Change-ScriptDirectory {
     Set-Location -Path $PSScriptRoot
+}
+
+Function Print {
+    Param( [string]$Message )
+
+    if ([string]::IsNullOrEmpty($global:PrintBuffer)) {
+        $global:PrintBuffer = ""
+    }
+
+    $global:PrintBuffer = "$global:PrintBuffer$Message$CRLF"
+}
+
+Function Flush {
+    $OK = [System.Windows.MessageBox]::Show($global:PrintBuffer)
+    $global:PrintBuffer = ""
 }
 
 Function Read-TextFile {
@@ -59,6 +76,7 @@ Function For-Each {
 
     [scriptblock]$SubRef = $Lambda
     Read-Line -Path $Path -Delimiter $Delimiter -Length $Length -Callback $SubRef
+    Flush
 }
 
 Function Display-License {
@@ -125,6 +143,8 @@ Function Stop-Services {
             $Status = "!"
         }
 
+        [string]$Message = "$Status $ServiceName ($($Service.StartType))"
+        Print -Message $Message
     }
 
     For-Each -Path "data\services.txt" -Delimiter " " -Length 1 -Lambda $Handler
