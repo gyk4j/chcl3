@@ -2,7 +2,7 @@
 
 [string]$CRLF = "`r`n"
 [string]$OK = "OK"
-[bool]$DEBUG = $false
+[bool]$DEBUG = $true
 
 Function Change-ScriptDirectory {
     Set-Location -Path $PSScriptRoot
@@ -12,6 +12,51 @@ Function Read-TextFile {
     Param ( [string]$Path )
 
     return Get-Content -Path $Path -Raw
+}
+
+Function Read-Line {
+    Param(
+        [string]$Path, 
+        [string]$Delimiter, 
+        [int]$Length, 
+        [scriptblock]$Callback
+    )
+
+    Get-Content -Path $Path | ForEach-Object {
+        [string]$Buffer = $_
+        # Remove comment
+        [int]$SemiColon = $Buffer.IndexOf(";")
+        if ($SemiColon -gt -1) {
+            $Buffer = $Buffer.Remove($SemiColon).Trim()
+        }
+
+        if ( ![string]::IsNullOrEmpty($Buffer) -and ![string]::IsNullOrWhiteSpace($Buffer) ) {
+            # Split into tokens
+            $Tokens = $Buffer -split $Delimiter
+
+            if ( $Tokens.Count -gt 0 -and $Tokens.Count -ge $Length ) {
+                $Callback.Invoke($Tokens)
+            }
+            else {
+                Write-Host "Skipped: $_"
+            }
+        }
+        else {
+            Write-Host "Skipped: $_"
+        }
+    }
+}
+
+Function For-Each {
+    Param(
+        [string]$Path, 
+        [string]$Delimiter, 
+        [int]$Length, 
+        [scriptblock]$Lambda
+    )
+
+    [scriptblock]$SubRef = $Lambda
+    Read-Line -Path $Path -Delimiter $Delimiter -Length $Length -Callback $SubRef
 }
 
 Function Display-License {
@@ -46,12 +91,21 @@ Click Cancel to exit now or OK to continue.
 
     $Warning = $Warning.Replace($CRLF + $CRLF, "~~~").Replace($CRLF, "").Replace("~~~", $CRLF + $CRLF)
 
-     if ($DEBUG) {
+    if ($DEBUG) {
         return $OK
     }
     else {
         return [System.Windows.MessageBox]::Show($Warning, "Warning", "OKCancel", "Exclamation")
     }
+}
+
+Function Test-ReadLines {
+    [ScriptBlock]$Handler = {
+        Param( [string[]]$Tokens )
+        Write-Host "Handler: $($Tokens[0])"
+    }
+
+    For-Each -Path "data\services.txt" -Delimiter " " -Length 1 -Lambda $Handler
 }
 
 Function Main {
@@ -66,6 +120,8 @@ Function Main {
     if ($Accepted -ne $OK) {
         return 2
     }
+
+    Test-ReadLines
     
     return 0
 }
