@@ -1,4 +1,6 @@
-﻿Add-Type -AssemblyName PresentationCore,PresentationFramework
+﻿using namespace System.ServiceProcess
+
+Add-Type -AssemblyName PresentationCore,PresentationFramework
 
 [string]$CRLF = "`r`n"
 [string]$OK = "OK"
@@ -37,13 +39,13 @@ Function Read-Line {
             if ( $Tokens.Count -gt 0 -and $Tokens.Count -ge $Length ) {
                 $Callback.Invoke($Tokens)
             }
-            else {
-                Write-Host "Skipped: $_"
-            }
+            #else {
+            #    Write-Host "Skipped: $_"
+            #}
         }
-        else {
-            Write-Host "Skipped: $_"
-        }
+        #else {
+        #    Write-Host "Skipped: $_"
+        #}
     }
 }
 
@@ -99,10 +101,30 @@ Click Cancel to exit now or OK to continue.
     }
 }
 
-Function Test-ReadLines {
+Function Stop-Services {
     [ScriptBlock]$Handler = {
         Param( [string[]]$Tokens )
-        Write-Host "Handler: $($Tokens[0])"
+        $ServiceName = $Tokens[0]
+        $Service = Get-Service -Name $ServiceName
+
+        $Status = "?"
+        if ($Service -ne $null -and $Service.Status -eq 'Running') {
+            Stop-Service -Name $ServiceName
+            #Start-Sleep -Milliseconds 5000
+        }
+
+        Set-Service -Name $ServiceName -StartupType Disabled
+        
+        if($Service -ne $null -and $Service.Status -eq 'Stopped' -and $Service.StartType -eq 'Disabled') {
+            $Status = "-"
+        }
+        elseif ($Service -eq $null) {
+            $Status = "?"
+        }
+        else {
+            $Status = "!"
+        }
+
     }
 
     For-Each -Path "data\services.txt" -Delimiter " " -Length 1 -Lambda $Handler
@@ -121,7 +143,7 @@ Function Main {
         return 2
     }
 
-    Test-ReadLines
+    Stop-Services
     
     return 0
 }
