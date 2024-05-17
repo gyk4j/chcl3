@@ -4,7 +4,7 @@ Add-Type -AssemblyName PresentationCore,PresentationFramework
 
 [string]$CRLF = "`r`n"
 [string]$OK = "OK"
-[bool]$DEBUG = $true
+[bool]$DEBUG = $false
 
 [string]$global:PrintBuffer
 
@@ -54,15 +54,15 @@ Function Read-Line {
             $Tokens = $Buffer -split $Delimiter
 
             if ( $Tokens.Count -gt 0 -and $Tokens.Count -ge $Length ) {
-                $Callback.Invoke($Tokens)
+                $Callback.Invoke($Tokens) | Out-Null
             }
-            #else {
-            #    Write-Host "Skipped: $_"
-            #}
+            else {
+                Write-Host "Skipped: $_"
+            }
         }
-        #else {
-        #    Write-Host "Skipped: $_"
-        #}
+        else {
+            Write-Host "Skipped: $_"
+        }
     }
 }
 
@@ -164,6 +164,55 @@ Function OverWrite-Files {
     For-Each -Path "data\files.txt" -Delimiter " " -Length 1 -Lambda $Handler
 }
 
+Function Update-RegistryKeyValues {
+    [ScriptBlock]$Handler = {
+        Param(
+            [string]$Key,
+            [string]$Value,
+            [string]$Type,
+            [string]$Data
+        )
+
+        $Key = $Key.Replace("HKLM\", "HKLM:\").Replace("HKCU\", "HKCU:\")
+
+        $TypeMappings = @{
+            REG_SZ = 'String';
+            REG_MULTI_SZ = 'MultiString';
+            REG_EXPAND_SZ = 'ExpandString';
+            REG_DWORD = 'DWord';
+            REG_QWORD = 'Qword';
+            REG_BINARY = 'Binary';
+            REG_NONE = 'Unknown'
+        }
+
+        $Type = $TypeMappings[$Type]
+        
+        [object]$ParsedData = $null
+        if ($Type -eq 'DWord'){
+            $ParsedData = [Int32]::Parse($Data)
+        }
+        elseif ($Type -eq 'Qword') {
+            $ParsedData = [Int64]::Parse($Data)
+        }
+        else {
+            $ParsedData = $Data
+        }
+
+
+        # Create the key if it does not exist
+        If (-NOT (Test-Path $Key)) {
+            New-Item -Path $Key -Force | Out-Null
+        }
+
+        # Now set the value
+        New-ItemProperty -Path $Key -Name $Value -Value $ParsedData -PropertyType $Type -Force
+
+        Print -Message "$Key\$Value=$Data ($Type)"
+    }
+
+    For-Each -Path "data\registry.txt" -Delimiter "," -Length 4 -Lambda $Handler
+}
+
 Function Main {
     Change-ScriptDirectory
 
@@ -179,6 +228,7 @@ Function Main {
 
     Stop-Services
     OverWrite-Files
+    Update-RegistryKeyValues
 
     return 0
 }
