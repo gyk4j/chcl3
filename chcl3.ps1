@@ -121,8 +121,7 @@ Click Cancel to exit now or OK to continue.
 
 Function Stop-Services {
     [ScriptBlock]$Handler = {
-        Param( [string[]]$Tokens )
-        $ServiceName = $Tokens[0]
+        Param( [string]$ServiceName )
         $Service = Get-Service -Name $ServiceName
 
         $Status = "?"
@@ -152,10 +151,9 @@ Function Stop-Services {
 
 Function OverWrite-Files {
     [ScriptBlock]$Handler = {
-        Param( [string[]]$Tokens )
+        Param( [string]$FilePath )
 
         [string]$Status = "-"
-        [string]$FilePath = $Tokens[0]
 
         Clear-Content $FilePath
         Print -Message "$Status $FilePath"
