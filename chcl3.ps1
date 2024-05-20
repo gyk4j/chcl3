@@ -463,6 +463,56 @@ Function Block-IPs {
 	$RulesObject.Add($NewRule)
 }
 
+Function Block-Hosts {
+    New-Variable -Name HOST_PATH              -Value "C:\Windows\System32\drivers\etc\hosts"     -Option Constant
+	New-Variable -Name HOST_BACKUP_PATH       -Value "C:\Windows\System32\drivers\etc\hosts.bkp" -Option Constant
+	New-Variable -Name DEBUG_HOST_PATH        -Value ".\Windows\System32\drivers\etc\hosts"      -Option Constant
+	New-Variable -Name DEBUG_HOST_BACKUP_PATH -Value ".\Windows\System32\drivers\etc\hosts.bkp"  -Option Constant
+
+    $HostsPath = $null, $HostsBackupPath = $null
+
+    [ScriptBlock]$Handler = {
+        Param( [string]$HostName )
+
+        if ( ($HostsPath -eq $null) -or (-not (Test-Path -Path $HostsPath -PathType Leaf)) ) {
+            Write-Host "Error: hosts file is not available"
+            return
+        }
+
+        $Status = "!"
+        $Found = Select-String -Path $HostsPath -Pattern "127.0.0.1`t$HostName" -SimpleMatch
+        if( $Found -eq $null ){
+            Add-Content -Path $HostsPath -Value "127.0.0.1`t$HostName" -Force
+            $Status = "-"
+        }
+
+        Print -Message "$Status $HostName"
+    }
+
+    if ($DEBUG) {
+		$HostsPath = $DEBUG_HOST_PATH
+		$HostsBackupPath = $DEBUG_HOST_BACKUP_PATH
+	}
+    else {
+		$HostsPath = $HOST_PATH
+		$HostsBackupPath = $HOST_BACKUP_PATH
+	}
+
+    if (-not (Test-Path -Path $HostsPath -PathType Leaf)) {
+        Write-Host "Error: $HostsPath (Missing)"
+        return
+    }
+
+    if (-not (Test-Path -Path $HostsBackupPath -PathType Leaf)) {
+        # Rename-Item requires a file name, not a path which may include a different directory.
+        $HostsBackupName = Split-Path -Path $HostsBackupPath -Leaf
+        Rename-Item -Path $HostsPath -NewName $HostsBackupName -Force
+        Copy-Item -Path $HostsBackupPath -Destination $HostsPath -Force
+    }
+
+    For-Each -Path "data\dns.txt" -Delimiter " " -Length 1 -Lambda $Handler
+}
+
 Function Main {
     Change-ScriptDirectory
 
@@ -482,6 +532,7 @@ Function Main {
     Disable-ScheduledTasks
     Uninstall-WindowsUpdates
     Block-IPs
+    Block-Hosts
 
     return 0
 }
