@@ -171,13 +171,13 @@ Function Stop-Services {
     For-Each -Path "data\services.txt" -Delimiter " " -Length 1 -Lambda $Handler
 }
 
-Function OverWrite-Files {
+Function Overwrite-Files {
     [ScriptBlock]$Handler = {
         Param( [string]$FilePath )
 
         [string]$Status = "-"
 
-        Clear-Content $FilePath
+        Clear-Content $FilePath -Force
         Print -Message "$Status $FilePath"
     }
 
@@ -527,7 +527,7 @@ Function Main {
     }
 
     Stop-Services
-    OverWrite-Files
+    Overwrite-Files
     Update-RegistryKeyValues
     Disable-ScheduledTasks
     Uninstall-WindowsUpdates
