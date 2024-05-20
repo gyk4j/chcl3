@@ -377,6 +377,92 @@ Function Uninstall-WindowsUpdates {
     }
 }
 
+Function Block-IPs {
+    [System.Collections.Generic.List[string]]$IPs = New-Object System.Collections.Generic.List[string]
+
+    [ScriptBlock]$Handler = {
+        Param( [string]$IPAddr )
+
+        $IPs.Add( $IPAddr )
+        Print ( "$($IPs.Count-1): $IPAddr" )
+    }
+
+    For-Each -Path "data\ip.txt" -Delimiter " " -Length 1 -Lambda $Handler
+
+    if ($IPs -eq $null) {
+        Write-Host "IPs are null."
+        return
+    }
+
+    if ($IPs.Count -lt 0) {
+        Write-Host "Count < 0"
+        return
+    }
+
+    $CurrentProfiles = $null
+    # Profiles
+	New-Variable -Name NET_FW_PROFILE2_DOMAIN -Value 0x1 -Option Constant
+	New-Variable -Name NET_FW_PROFILE2_PRIVATE -Value 0x2 -Option Constant
+	New-Variable -Name NET_FW_PROFILE2_PUBLIC -Value 0x4 -Option Constant
+	New-Variable -Name NET_FW_PROFILE2_ALL -Value 0x7fffffff -Option Constant
+
+	# Protocol
+	New-Variable -Name NET_FW_IP_PROTOCOL_TCP -Value 6 -Option Constant
+	New-Variable -Name NET_FW_IP_PROTOCOL_UDP -Value 17 -Option Constant
+	New-Variable -Name NET_FW_IP_PROTOCOL_ANY -Value 256 -Option Constant
+
+	# Direction
+	New-Variable -Name NET_FW_RULE_DIR_IN -Value 1 -Option Constant
+	New-Variable -Name NET_FW_RULE_DIR_OUT -Value 2 -Option Constant
+
+	# Action
+	New-Variable -Name NET_FW_ACTION_BLOCK -Value 0 -Option Constant
+	New-Variable -Name NET_FW_ACTION_ALLOW -Value 1 -Option Constant
+
+    <#
+    On newer Windows version (Windows 8 and Server 2012) and PowerShell 5.1 
+    onward, we can use the built-in NetSecurity module and its Firewall 
+    commands.
+
+    On older Windows (e.g. Windows 7, Vista, XP, Server 2008, Server 2003), we
+    need to fallback on the traditional COM objects.
+
+    We can rewrite this to use the newer commands when the baseline Windows 
+    and PowerShell version is changed. Modern Windows 10 and 11 should have the
+    required NetSecurity module already built-in.
+    #>
+
+    # Create the FwPolicy2 object.
+    $FwPolicy2 = New-Object -ComObject("HNetCfg.FwPolicy2")
+
+    # Get the Rules object
+    $RulesObject = $FwPolicy2.Rules
+
+    $CurrentProfiles = $FwPolicy2.CurrentProfileTypes
+
+    # Remove any existing rule from a previous run
+    $RulesObject.Remove("Block PowerShell Telemetry")
+
+    # Create a Rule Object.
+    $NewRule = New-Object -ComObject("HNetCfg.FWRule")
+
+    $NewRule.Name = "Block PowerShell Telemetry"
+	$NewRule.Description = "Block PowerShell Telemetry"
+	#$NewRule.Applicationname = "%systemDrive%\Program Files\MyApplication.exe"
+	$NewRule.Protocol = $NET_FW_IP_PROTOCOL_ANY
+	$NewRule.RemoteAddresses = [string]::Join(",", $IPs)
+	#$NewRule.LocalPorts = 8080
+	#$NewRule.RemotePorts = 443,80
+	$NewRule.Direction = $NET_FW_RULE_DIR_OUT
+	$NewRule.Enabled = $true
+	#$NewRule.Grouping = "@firewallapi.dll,-23255"
+	$NewRule.Profiles = $NET_FW_PROFILE2_ALL #$CurrentProfiles
+	$NewRule.Action = $NET_FW_ACTION_BLOCK
+
+    # Add a new rule
+	$RulesObject.Add($NewRule)
+}
+
 Function Main {
     Change-ScriptDirectory
 
@@ -395,6 +481,7 @@ Function Main {
     Update-RegistryKeyValues
     Disable-ScheduledTasks
     Uninstall-WindowsUpdates
+    Block-IPs
 
     return 0
 }
