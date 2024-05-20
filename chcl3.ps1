@@ -6,6 +6,15 @@ Add-Type -AssemblyName PresentationCore,PresentationFramework
 [string]$OK = "OK"
 [bool]$DEBUG = $false
 
+# Schedule Service
+<#
+New-Variable -Name TASK_STATE_UNKNOWN -Value 0 -Option Constant
+New-Variable -Name TASK_STATE_DISABLED -Value 1 -Option Constant
+New-Variable -Name TASK_STATE_QUEUED -Value 2 -Option Constant
+New-Variable -Name TASK_STATE_READY -Value 3 -Option Constant
+New-Variable -Name TASK_STATE_RUNNING -Value 4 -Option Constant
+#>
+
 [string]$global:PrintBuffer
 
 Function Change-ScriptDirectory {
@@ -54,15 +63,18 @@ Function Read-Line {
             $Tokens = $Buffer -split $Delimiter
 
             if ( $Tokens.Count -gt 0 -and $Tokens.Count -ge $Length ) {
+                #foreach( $t in $Tokens ){
+                #    Write-Host "T: $t"
+                #}
                 $Callback.Invoke($Tokens) | Out-Null
             }
-            else {
-                Write-Host "Skipped: $_"
-            }
+            #else {
+            #    Write-Host "Skipped: $_"
+            #}
         }
-        else {
-            Write-Host "Skipped: $_"
-        }
+        #else {
+        #    Write-Host "Skipped: $_"
+        #}
     }
 }
 
@@ -211,6 +223,44 @@ Function Update-RegistryKeyValues {
     For-Each -Path "data\registry.txt" -Delimiter "," -Length 4 -Lambda $Handler
 }
 
+Function Disable-ScheduledTasks {
+    $ScheduleService = New-Object -ComObject("Schedule.Service")
+    $ScheduleService.Connect()
+    $RootFolder = $ScheduleService.GetFolder("\")
+
+    [ScriptBlock]$Handler = {
+        Param( [string]$TaskName )
+        [string]$Status = ""
+
+        if ($RootFolder -eq $null){
+            Write-Host "Error: Root folder is null"
+            return 1
+        }
+       
+        try {
+            $RegisteredTask = $null
+            $RegisteredTask = $RootFolder.GetTask($TaskName)
+
+            # Stop the task if it is running
+            if ($RegisteredTask.State -eq $TASK_STATE_RUNNING) {
+                $RegisteredTask.Stop()
+            }
+
+            # Disable the scheduled task
+		    $RegisteredTask.Enabled = $false
+            
+            $Status = "-"
+        }
+        catch {
+            $Status = "!"
+        }
+        
+        Print -Message "$Status $TaskName $State"
+    }
+
+    For-Each -Path "data\schtasks.txt" -Delimiter ";" -Length 1 -Lambda $Handler    
+}
+
 Function Main {
     Change-ScriptDirectory
 
@@ -227,6 +277,7 @@ Function Main {
     Stop-Services
     OverWrite-Files
     Update-RegistryKeyValues
+    Disable-ScheduledTasks
 
     return 0
 }
