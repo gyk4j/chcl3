@@ -15,6 +15,16 @@ New-Variable -Name TASK_STATE_READY -Value 3 -Option Constant
 New-Variable -Name TASK_STATE_RUNNING -Value 4 -Option Constant
 #>
 
+# Installer
+<#
+New-Variable -Name ORC_NOT_STARTED -Value 0 -Option Constant
+New-Variable -Name ORC_IN_PROGRESS -Value 1 -Option Constant
+New-Variable -Name ORC_SUCCEEDED -Value 2 -Option Constant
+New-Variable -Name ORC_SUCCEEDED_WITH_ERRORS -Value 3 -Option Constant
+New-Variable -Name ORC_FAILED -Value 4 -Option Constant
+New-Variable -Name ORC_ABORTED -Value 5 -Option Constant
+#>
+
 [string]$global:PrintBuffer
 
 Function Change-ScriptDirectory {
@@ -247,7 +257,7 @@ Function Disable-ScheduledTasks {
             }
 
             # Disable the scheduled task
-		    $RegisteredTask.Enabled = $false
+            $RegisteredTask.Enabled = $false
             
             $Status = "-"
         }
@@ -259,6 +269,112 @@ Function Disable-ScheduledTasks {
     }
 
     For-Each -Path "data\schtasks.txt" -Delimiter ";" -Length 1 -Lambda $Handler    
+}
+
+Function Uninstall-WindowsUpdates {
+    <#
+    For Windows with Internet connection to download and install required NuGet.
+    Source: https://powershellisfun.com/2024/01/19/using-the-powershell-pswindowsupdate-module/
+
+    Examples:
+
+    # Install NuGet (if required)
+    Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Force
+
+    # Use NuGet to install PSWindowsUpdate cmdlet (https://www.powershellgallery.com/packages/PSWindowsUpdate)
+    Install-Module PSWindowsUpdate
+
+    # Import module for use
+    Import-Module PSWindowsUpdate
+
+    # List the commands provided by PSWindowsUpdate
+    Get-Command -Module PSWindowsUpdate | Sort-Object CommandType, Name
+
+    # Get list of available Windows Updates
+    Get-WindowsUpdate
+
+    # Install available updates
+    Install-WindowsUpdate -AcceptAll
+
+    # List installed updates
+    Get-WUHistory
+    Get-WUHistory -Last 2
+    Get-WUHistory | Format-List
+
+    # Uninstall an update
+    Uninstall-WindowsUpdate -KBArticleID KB4023057
+
+    # Install an update
+    Install-WindowsUpdate -KBArticleID KB4052623
+    #>
+
+    <#
+    But since I am assuming this script may be used on a non-Internet 
+    connected offline system without any NuGet pre-installed, and access to 
+    PowerShell Gallery is restricted, let's fallback onto the old COM objects 
+    instead.
+    #>
+    
+    $Session = New-Object -ComObject("Microsoft.Update.Session")
+	$Session.ClientApplicationID = "MSDN Sample Script"
+    
+	$Searcher = $Session.CreateUpdateSearcher()
+	$SearchResult = $Searcher.Search("IsInstalled=1")
+	$UpdatesToUninstall = New-Object -ComObject("Microsoft.Update.UpdateColl")
+    
+    [ScriptBlock]$Handler = {
+        Param( [string]$KB )
+        
+        # Exit if $SearchResult and $UpdatesToUninstall are uninitialized
+        if ($SearchResult -eq $null) {
+            Write-Host "SearchResult = null"
+            return
+        }
+        elseif ($UpdatesToUninstall -eq $null) {
+            Write-Host "UpdatesToUninstall = null"
+            return
+        }
+
+        $Found = $false
+        for ($i=0; $i -lt $SearchResult.Updates.Count; $i++){
+            $Item = $SearchResult.Updates.Item($i)
+
+            # Add all matching updates from search result to be uninstalled
+            if ($Item.Title.EndsWith("(KB$KB)")) {
+                $UpdatesToUninstall.Add($Item)
+                $Found = $true
+            }
+        }
+
+        if ($Found) {
+            Print("- KB$KB")
+        }
+        else {
+            Print("- KB$KB")
+        }
+    }
+
+    For-Each -Path "data\updates.txt" -Delimiter " " -Length 1 -Lambda $Handler
+
+    if ($UpdatesToUninstall.Count -gt 0) {
+        $Installer = $Session.CreateUpdateInstaller()
+		$Installer.Updates = $UpdatesToUninstall
+        $UninstallResult = $Installer.Uninstall()
+
+        switch ($UninstallResult.ResultCode)
+        {
+            $ORC_NOT_STARTED { Write-Host "Not started" }
+            $ORC_IN_PROGRESS { Write-Host "In progress" }
+            $ORC_SUCCEEDED { Write-Host "Succeeded" }
+            $ORC_SUCCEEDED_WITH_ERRORS { Write-Host "Succeeded with errors" }
+            $ORC_FAILED { Write-Host "Failed" }
+            $ORC_ABORTED { Write-Host "Aborted" }
+            default { Write-Host "Unknown operation result code: $($UninstallResult.ResultCode)" }
+        }
+    }
+    else {
+        Write-Host "No update is required to be uninstalled" 
+    }
 }
 
 Function Main {
@@ -278,6 +394,7 @@ Function Main {
     OverWrite-Files
     Update-RegistryKeyValues
     Disable-ScheduledTasks
+    Uninstall-WindowsUpdates
 
     return 0
 }
