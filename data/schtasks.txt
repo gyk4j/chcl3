@@ -1,25 +1,31 @@
 ; Drope those telemetry task in windows7/10: https://www.reddit.com/r/privacy/comments/gw6z0t/drope_those_telemetry_task_in_windows710/
+; Disable tracking systems (telemetry) of Windows 7, 8 and 8.1: https://us.informatiweb.net/tutorials/it/windows/windows-7-8-8-1-disable-windows-tracking-systems-telemetry.html
+; purge_windows_7-8-81_telemetry.bat: https://github.com/bmrf/tron/blob/master/resources/stage_4_repair/disable_windows_telemetry/purge_windows_7-8-81_telemetry.bat
+; The Windows Winsat command: https://www.ghacks.net/2017/10/16/the-windows-winsat-command/
 \Microsoft\Windows\Application Experience\AITAgent
 \Microsoft\Windows\Application Experience\Microsoft Compatibility Appraiser
 \Microsoft\Windows\Application Experience\ProgramDataUpdater
 \Microsoft\Windows\Autochk\Proxy
+\Microsoft\Windows\Customer Experience Improvement Program\BthSQM
 \Microsoft\Windows\Customer Experience Improvement Program\Consolidator
 \Microsoft\Windows\Customer Experience Improvement Program\KernelCeipTask
 \Microsoft\Windows\Customer Experience Improvement Program\UsbCeip
 ;\Microsoft\Windows\Diagnosis\*
 \Microsoft\Windows\DiskDiagnostic\DiskDiagnosticDataCollector
 \Microsoft\Windows\DiskDiagnostic\Microsoft-Windows-DiskDiagnosticDataCollector
+\Microsoft\Windows\AppID\SmartScreenSpecific
 ;\Microsoft\Windows\Location\*
-;\Microsoft\Windows\Maintenance\*
+\Microsoft\Windows\Maintenance\WinSAT
 ;\Microsoft\Windows\Media Center\*
 ;\Microsoft\Windows\MemoryDiagnostic\*
 ;\Microsoft\Windows\MobilePC\*
 ;\Microsoft\Windows\NetTrace\*
 ;\Microsoft\Windows\NetworkAccessProtection\*
 ;\Microsoft\Windows\PerfTrack\*
+\Microsoft\Windows\PI\Sqm-Tasks
 ;\Microsoft\Windows\PLA\*
 ;\Microsoft\Windows\PLA\System\*
-;\Microsoft\Windows\Power Efficiency Diagnostics\*
+\Microsoft\Windows\Power Efficiency Diagnostics\AnalyzeSystem
 ;\Microsoft\Windows\RAC\*
 ;\Microsoft\Windows\Registry\*
 ;\Microsoft\Windows\RemoteApp and Desktop Connections Update\*

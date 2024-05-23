@@ -1,6 +1,19 @@
+; purge_windows_7-8-81_telemetry.bat: https://github.com/bmrf/tron/blob/master/resources/stage_4_repair/disable_windows_telemetry/purge_windows_7-8-81_telemetry.bat
 HKLM\SOFTWARE\Microsoft\SQMClient\Windows,CEIPEnable,REG_DWORD,0
 HKLM\SOFTWARE\Microsoft\Windows\Windows Error Reporting,Disabled,REG_DWORD,1
 HKLM\SOFTWARE\Microsoft\Windows\Windows Error Reporting,DontShowUI,REG_DWORD,1
 HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate\Auto Update,AUOptions,REG_DWORD,1
 HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate\Auto Update,IncludeRecommendedUpdates,REG_DWORD,0
 HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate\Auto Update,ElevateNonAdmins,REG_DWORD,0
+HKLM\SOFTWARE\Policies\Microsoft\Windows\DataCollection,AllowTelemetry,REG_DWORD,0
+HKLM\SOFTWARE\Wow6432Node\Policies\Microsoft\Windows\DataCollection,AllowTelemetry,REG_DWORD,0
+HKLM\SYSTEM\CurrentControlSet\Control\WMI\AutoLogger\AutoLogger-Diagtrack-Listener,Start,REG_DWORD,0
+HKLM\SOFTWARE\Microsoft\wcmsvc\WifiNetworkManager,WifiSenseCredShared,REG_DWORD,0
+HKLM\SOFTWARE\Microsoft\wcmsvc\WifiNetworkManager,WifiSenseOpen,REG_DWORD,0
+HKLM\SOFTWARE\Microsoft\Windows Defender\SpyNet,SpyNetReporting,REG_DWORD,0
+HKLM\SOFTWARE\Microsoft\Windows Defender\SpyNet,SubmitSamplesConsent,REG_DWORD,0
+HKLM\SOFTWARE\Policies\Microsoft\Windows\SkyDrive,DisableFileSync,REG_DWORD,1
+HKCR\CLSID\{018D5C66-4533-4307-9B53-224DE2ED1FE6},System.IsPinnedToNameSpaceTree,REG_DWORD,0
+HKCR\Wow6432Node\CLSID\{018D5C66-4533-4307-9B53-224DE2ED1FE6},System.IsPinnedToNameSpaceTree,REG_DWORD,0
+HKLM\SYSTEM\CurrentControlSet\Services\DiagTrack,Start,REG_DWORD,4
+HKLM\SYSTEM\CurrentControlSet\Services\dmwappushservice,Start,REG_DWORD,4
