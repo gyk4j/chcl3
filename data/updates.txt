@@ -1,26 +1,75 @@
-3065988
-3083325
-3083324
-2976978
-3075853
-3065987
-3050265
-3050267
-3075851
-2902907
-3068708
-3022345
-2952664
-2990214
-3035583
-971033
-3021917
-3044374
-3046480
-3075249
-3080149
-2977759
-3083710
-3083711
-3112336
-3123862
+; Which window-7 Updates should never be installed: https://www.askwoody.com/forums/topic/which-window-7-updates-should-never-be-installed/#post-2054967
+; xvitaly/remove_crw.cmd: https://gist.github.com/xvitaly/eafa75ed2cb79b3bd4e9
+2882822 ; Diagnostics Tracking Service
+2902907 ; description not available
+2938066 ; An update to harden Windows Server Update Services that further improves the security of Windows Server Update Services (WSUS) and the Windows Update Agent (WUA)
+2952664 ; Get Windows 10 assistant (Compatibility Appraiser functionality)
+2966583 ; Improvements for the System Update Readiness Tool in Windows 7
+2976978 ; Compatibility update for Windows 8.1
+2976987 ; prepares system for upgrade to Windows 10
+2977759 ; W10 Diagnostics Compatibility telemetry for Windows 7 RTM
+2990214 ; Get Windows 10 for Win7 (Apr '15 - WUC: enables ability to upgrade to Win10)
+3012973 ; Force trigger download and install of win10
+3014460 ; Windows 8 - Nags you to install Windows 10 technical preview
+3015249 ; Telemetry, reports UAC prompt choices when making changes to the system
+3021917 ; prepares system for upgrade to Windows 10 (CEIP)
+3022345 ; installs diagnostic/usage tracking service, reported to corrupt system files, went through 3 versions
+3029606 ; Telemetry?? Update to improve Bluetooth driver diagnosis in Windows 8.1
+3035583 ; "Get Windows 10" App (System Tray Nagware/Telemetry) pitches the free Windows 10 upgrade
+3038314 ; messing with set default search provider
+3042058 ; Update to Default Cipher Suite Priority Order (contains winlogon spying)
+3044374 ; update that supports you to upgrade to a later version of Windows Win8
+3045645 ; Update to force a UAC prompt when a customized .sdb file is created in Windows
+3046480 ; Update helps to determine whether to migrate thr .net Framework 1.1 when you upgrade windows8.1 or windows7
+3050265 ; Jun '15 - Windows Update Client for Windows 7: June 2015 = allows Group Policy to set "DisableOS Upgrade" key (replaces 2990214)
+3050267 ; Windows Update Client for Windows 8.1 and Windows Server 2012 R2: July 2015 - prepares system for upgrade to Windows 10
+3054476 ; This update helps Microsoft improve the experiences when users run stream.sys driver-based applications in Windows 7 Service Pack 1 (SP1)
+3064683 ; Windows 10 Upgrade for Windows 8
+3065987 ; Jul '15 - update for "Windows Update" on Win7/Server 2008R2 (Windows 10 Upgrade for Windows 7) (replaces 3050265)
+3065988 ; Windows Update Client for Windows 8.1 and Windows Server 2012 R2: July 2015 (Windows 10 Upgrade for Windows 8)
+3068707 ; Customer experience telemetry points
+3068708 ; installs telemetry service, prepares system for upgrade to Windows 10
+3070773 ; Telemetry Win o IE
+3072318 ; Update for Windows 8.1 OOBE to upgrade to Windows 10
+3074677 ; Windows 10 Upgrade preparation
+3075249 ; Telemetry, reports UAC prompts to Microsoft
+3075851 ; Aug '15 - WUC: fixes mess due to KB3065987 [cuts down WUC memory usage, but hides Update notifications if GWX app is active] (replaces 3065987)
+3075853 ; update for "Windows Update" on Win8.1/Server 2012R2 (Windows 10 Upgrade for Windows 8)
+3080079 ; Update to add RDS support for TLS 1.1 and TLS 1.2 in Windows 7
+3080149 ; Update for customer experience and diagnostic telemetry, CEIP
+3080351 ; Win10 related
+3081437 ; Windows 10 Upgrade preparation
+3081454 ; Windows 10 Upgrade preparation
+3081954 ; Telemetry Update for Windows 7
+3083225 ; Some says Telemetry. No info avalible on MS
+3083324 ; Windows 10 Upgrade preparation for Windows 7 (Sep '15 replaces 3075851)
+3083325 ; Windows 10 Upgrade preparation for Windows 8
+3083710 ; Update for the Windows Update client with sketchy details for Windows 7 (Oct '15 replaces 3083324)
+3083711 ; Update for the Windows Update client with sketchy details for Windows 8 
+3088195 ; Microsoft Claims it's a security update but also has a key logger on the Kernel Level
+3090045 ; Windows 10 Upgrade Update for Windows 7/8
+3093983 ; Microsoft claims it's a security update but it contains IE spying
+3095649 ; Fixes a crash in Win32k.sys in Windows 7 SP1 (Some says win10 related)
+3097966 ; Microsoft security advisory: Inadvertently disclosed digital certificates could allow spoofing: October 13, 2015
+3102810 ; Nov '15 - WUC: fixes slow updates & high CPU usage
+3102812 ; Fixes an issue regarding long wait while searching for Windows Updates but also has Windows 10 Upgrade preparation for Windows 8
+3112336 ; Windows 10 Upgrade for Windows 8
+3112343 ; Dec '15 WUC: fix for issues with 3050265, e.g., "8007000E" error message. Windows Update Client for Windows 7
+3123862 ; Windows Update Client for Windows 7 (Telemetry adds capabilities to some computers that lets users easily learn about Windows 10 or start an upgrade to Windows 10.)
+3135445 ; Feb '16 Windows Update Client for Windows 7
+3135449 ; Windows 10 Upgrade for Windows 8
+3138612 ; Mar '16 Windows Update Client for Windows 7
+3138615 ; Windows Update Client for Windows 8.1
+3139923 ; Another GWX for Windows 7/8.1 (Fix for Windows installer (MSI) repair doesn't work when MSI package is installed on an HTTP share in Windows)
+3139929 ; Get Windows 10 update for MSIE (Cumulative security update for IE, carries KB3146449)
+3141092 ; Reportedly piggybacks on Security Update KB3134814 if IE11 is installed
+3146449 ; Windows 10 Upgrade for Windows 7/8
+3148198 ; Cumulative update for IE11. Includes previous Windows 10 preparation.
+3150513 ; Compactibility Update (another GWX) for Windows 7/8.1
+3161608 ; June 2016 Update Rollup for Windows 7 SP1 (Includes Windows Update Client for Windows 7: June 2016) contains some telemetry.
+3161647 ; Jun '16 Windows Update Client for Windows 7 and Windows Server 2008 R2
+3167679 ; MS-says: Description of the security update for Windows authentication methods: August 9, 2016.. But,KB3167679 breaks password changing on Win7 joined in NT style domain (samba 3.6.23)
+3170735 ; July 2016 Update for Windows Journal (on many block lists. Says Win 10 related)
+3173040 ; Another GWX for Windows 7/8.1 (Windows 8.1 and Windows 7 SP1 end of free upgrade offer notification)
+3184143 ; Remove software related to the Windows 10 free upgrade offer.
+971033  ; license validation
