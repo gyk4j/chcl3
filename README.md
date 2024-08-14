@@ -11,6 +11,9 @@ It also adds known IP addresses and host names to firewall and
 Windows `hosts` file respectively to block network communication used for 
 uploading collected telemetry data.
 
+![CMD/Batch Script](../../wiki/assets/images/chcl3-cmd.png)
+![Powershell Script](../../wiki/assets/images/chcl3-ps1.png)
+
 > [!IMPORTANT]  
 > It is developed and tested only on Windows 7.
 
