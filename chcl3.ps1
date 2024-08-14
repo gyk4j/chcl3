@@ -1,4 +1,6 @@
-﻿using namespace System.ServiceProcess
+﻿#Require -Version 5.0
+
+using namespace System.ServiceProcess
 
 Add-Type -AssemblyName PresentationCore,PresentationFramework
 
