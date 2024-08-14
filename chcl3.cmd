@@ -73,7 +73,7 @@ for /f "delims=" %%A IN (data\schtasks.txt) DO (
 echo.
 
 echo # Uninstalling telemetry Windows Updates
-for /f "delims=" %%A IN (data\updates.txt) DO (
+for /f "delims= ;" %%A IN (data\updates.txt) DO (
 	WUSA /uninstall /kb:%%A /quiet /norestart
 	if ERRORLEVEL 0 (
 		ECHO - KB%%A
